@@ -33,11 +33,9 @@ jobs:
         shell: pwsh
         run: |
           $h = (Get-FileHash MemoryClear.exe -Algorithm SHA256).Hash.ToLower()
-          "SHA256 = $h" | Tee-Object -FilePath sha256.txt
-          "### SHA256" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
-          "``````" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
-          $h | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
-          "``````" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          $fence = [char]96 * 3
+          "SHA256=$h" | Out-File -Encoding ascii sha256.txt
+          Add-Content -Encoding utf8 -Path $env:GITHUB_STEP_SUMMARY -Value @("### SHA256", $fence, $h, $fence)
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
@@ -52,7 +50,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $sha = (Get-Content sha256.txt -Raw).Trim() -replace '^SHA256 = ', ''
-          $notes = "由 GitHub Actions 从源码自动编译，无需本地环境。`n`n`````` SHA256  $sha ``````"
-          gh release create "${{ github.ref_name }}" MemoryClear.exe `
-            --title "${{ github.ref_name }}" --notes $notes --verify-tag
+          $sha = ((Get-Content sha256.txt -Raw).Trim() -split '=')[1]
+          $notes = "由 GitHub Actions 从源码自动编译，无需本地环境。`n`nSHA256: $sha"
+          gh release create "${{ github.ref_name }}" MemoryClear.exe --title "${{ github.ref_name }}" --notes $notes --verify-tag
