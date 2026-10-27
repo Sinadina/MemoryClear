@@ -33,9 +33,8 @@ jobs:
         shell: pwsh
         run: |
           $h = (Get-FileHash MemoryClear.exe -Algorithm SHA256).Hash.ToLower()
-          $fence = [char]96 * 3
           "SHA256=$h" | Out-File -Encoding ascii sha256.txt
-          Add-Content -Encoding utf8 -Path $env:GITHUB_STEP_SUMMARY -Value @("### SHA256", $fence, $h, $fence)
+          Add-Content -Encoding utf8 -Path $env:GITHUB_STEP_SUMMARY -Value @("### SHA256", "", "SHA256 $h")
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
