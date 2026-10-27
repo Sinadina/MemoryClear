@@ -1,0 +1,10 @@
+# 构建产物（发布走 GitHub Release 附件）
+MemoryClear.exe
+*.pdb
+*.user
+
+# 临时文件
+*.log
+*.tmp
+obj/
+bin/
