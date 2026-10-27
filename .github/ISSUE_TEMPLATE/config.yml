@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 使用方法与机制说明
+    url: https://github.com/Sinadina/MemoryClear#readme
+    about: 先看 README，尤其是「关于释放内存的诚实说明」一节
+  - name: 下载最新版本
+    url: https://github.com/Sinadina/MemoryClear/releases/latest
+    about: 请使用 Release 里的 exe，不要自行编译后反馈问题

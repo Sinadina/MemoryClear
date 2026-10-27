@@ -1,0 +1,58 @@
+name: build
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: 编译并打包
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 用系统自带的 csc 编译
+        shell: pwsh
+        run: |
+          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          if (-not (Test-Path $csc)) { throw "找不到 csc.exe，运行器上缺少 .NET Framework" }
+          & $csc /nologo /target:winexe /platform:anycpu /optimize+ /win32manifest:app.manifest `
+            /out:MemoryClear.exe `
+            /reference:System.dll /reference:System.Drawing.dll `
+            /reference:System.Windows.Forms.dll /reference:System.Management.dll `
+            MemoryClear.cs
+          if ($LASTEXITCODE -ne 0) { throw "编译失败，退出码 $LASTEXITCODE" }
+          if (-not (Test-Path MemoryClear.exe)) { throw "没有生成 MemoryClear.exe" }
+          Get-Item MemoryClear.exe | Select-Object Name, Length | Format-Table | Out-String | Write-Host
+
+      - name: 计算校验值
+        shell: pwsh
+        run: |
+          $h = (Get-FileHash MemoryClear.exe -Algorithm SHA256).Hash.ToLower()
+          "SHA256 = $h" | Tee-Object -FilePath sha256.txt
+          "### SHA256" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          "``````" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          $h | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          "``````" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: MemoryClear
+          path: MemoryClear.exe
+          if-no-files-found: error
+
+      - name: 发布 Release（仅打 tag 时）
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $sha = (Get-Content sha256.txt -Raw).Trim() -replace '^SHA256 = ', ''
+          $notes = "由 GitHub Actions 从源码自动编译，无需本地环境。`n`n`````` SHA256  $sha ``````"
+          gh release create "${{ github.ref_name }}" MemoryClear.exe `
+            --title "${{ github.ref_name }}" --notes $notes --verify-tag

@@ -1,0 +1,34 @@
+name: 功能建议
+description: 想要新的清理级别、界面改进、命令行参数等
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: want
+    attributes:
+      label: 你想要什么
+      description: 一句话说清目标，不用写实现方案
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: 为什么需要 / 现在哪里不方便
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: 请确认没有突破这些既定边界
+      description: 下面几条是这个工具刻意不做的事
+      options:
+        - label: 我建议的功能不包含「常驻后台 / 托盘监控 / 定时自动清理」
+        - label: 我建议的功能不包含「注册开机自启或系统服务」
+        - label: 我建议的功能不包含「注入进程、装驱动、改页面文件或关闭 SysMain」
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 其它参考（截图、类似工具的做法等）
